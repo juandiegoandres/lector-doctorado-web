@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Lecturas">
+<meta name="theme-color" content="#ffffff">
+<title>Lecturas del doctorado</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 9h6a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H9zM23 9h-3' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- Biblioteca -->
+<section id="biblioteca">
+  <header class="cabecera">
+    <div>
+      <p class="sobretitulo">Doctorado en Educación, Cultura y Sociedad</p>
+      <h1>Lecturas</h1>
+    </div>
+    <div class="cifras" id="cifras"></div>
+  </header>
+  <div class="controles">
+    <div class="filtros vistas" role="tablist" aria-label="Vista">
+      <button class="segmento activo" data-vista="estantes">Estantes</button>
+      <button class="segmento" data-vista="lista">Lista</button>
+      <button class="segmento" data-vista="plan">Plan</button>
+    </div>
+    <div class="filtros estados" role="tablist" aria-label="Filtro">
+      <button class="segmento activo" data-filtro="todos">Todos</button>
+      <button class="segmento" data-filtro="leyendo">Leyendo</button>
+      <button class="segmento" data-filtro="pendiente">Pendientes</button>
+      <button class="segmento" data-filtro="leido">Leídos</button>
+    </div>
+    <button id="b-subir" class="boton primario" data-solo-mac>+ Agregar lectura</button>
+  </div>
+  <div id="estantes"></div>
+  <div id="vista-lista" hidden></div>
+  <div id="vista-plan" hidden>
+    <section class="tarjeta"><h2>Avance</h2><p class="ayuda">Contorno: lo planeado. Relleno: lo que leíste (minutos por día).</p><div id="gantt"></div></section>
+    <section class="tarjeta">
+      <h2>Plan de lectura</h2>
+      <p class="ayuda">Cambia días y horas, agrega o quita bloques, y guarda. Lo del plan sube al estante «Esta semana».</p>
+      <div id="plan-editor"></div>
+      <div class="fila-botones">
+        <button id="plan-agregar" class="boton secundario">+ Bloque</button>
+        <button id="plan-guardar" class="boton primario">Guardar plan</button>
+        <span id="plan-estado" class="estado"></span>
+      </div>
+    </section>
+    <section class="tarjeta" data-solo-mac>
+      <h2>Calendario</h2>
+      <p class="ayuda">Crea un evento por bloque en el Calendario de tu Mac. Si el calendario es de iCloud, también aparece en el iPhone. Si lo vuelves a enviar, reemplaza los eventos anteriores, no los duplica.</p>
+      <div class="fila-botones">
+        <select id="cal-nombre"><option>Cargando calendarios…</option></select>
+        <button id="cal-enviar" class="boton primario">Enviar al Calendario</button>
+        <span id="cal-estado" class="estado"></span>
+      </div>
+    </section>
+  </div>
+
+  <dialog id="subir">
+    <form method="dialog" id="form-subir">
+      <h2>Agregar lectura</h2>
+      <label>Archivo PDF<input type="file" id="s-archivo" accept="application/pdf,.pdf" required></label>
+      <div class="dos"><label>Autor (apellido)<input id="s-autor" required placeholder="Lithner"></label>
+        <label>Año<input id="s-anio" inputmode="numeric" maxlength="4" placeholder="2008"></label></div>
+      <label>Título o tema<input id="s-titulo" placeholder="creative and imitative reasoning"></label>
+      <p id="s-estado" class="estado"></p>
+      <div class="fila-botones"><button type="button" class="boton secundario" id="s-cancelar">Cancelar</button>
+        <button type="submit" class="boton primario" id="s-enviar">Agregar</button></div>
+    </form>
+  </dialog>
+  <footer class="pie">
+    <span class="estado"><span id="estado-guardado"></span> <span id="sin-internet"></span></span>
+    <button id="exportar" class="boton secundario">Descargar mi registro</button>
+  </footer>
+</section>
+
+<!-- Lector -->
+<section id="lector" hidden>
+  <header class="barra">
+    <button id="volver" class="boton fantasma" aria-label="Volver a la biblioteca">‹ Biblioteca</button>
+    <div class="titulo-lector"><strong id="l-autor"></strong><span id="l-tema"></span></div>
+    <div class="herramientas" role="radiogroup" aria-label="Herramienta">
+      <button class="segmento activo" data-modo="leer" title="Pasar páginas">Leer</button>
+      <button class="segmento" data-modo="lupa" title="Arrastra la lupa sobre el texto para traducirlo">Lupa</button>
+      <button class="segmento" data-modo="subrayar" title="Arrastra sobre las líneas para subrayarlas">Subrayar</button>
+      <button class="segmento" data-modo="recortar" title="Arrastra un rectángulo sobre una figura para guardarla como imagen">Recortar</button>
+    </div>
+    <div id="paleta" class="paleta" hidden></div>
+    <div class="acciones">
+      <div class="ancla">
+        <button id="b-ocr" class="boton secundario" title="Leer el texto de páginas escaneadas con el OCR de Apple">OCR</button>
+        <div id="menu-ocr" class="menu" hidden>
+          <button data-ocr="pagina" data-solo-mac>Escanear esta página</button>
+          <button data-ocr="todo" data-solo-mac>Escanear todo el documento</button>
+          <button data-ocr="corregir">Revisar y corregir el OCR</button>
+          <hr data-solo-mac>
+          <button data-exportar="0" data-solo-mac>Descargar PDF con texto</button>
+          <button data-exportar="1" data-solo-mac>Descargar PDF con texto y mis subrayados</button>
+        </div>
+      </div>
+      <button id="b-comparar" class="boton secundario" hidden>Comparar</button>
+      <button id="b-modo" class="boton secundario">1 página</button>
+      <button id="b-ficha" class="boton primario">Ficha</button>
+    </div>
+  </header>
+
+  <div id="mesa" data-modo="leer">
+    <div id="libro">
+      <div class="lomo"></div>
+      <div class="slot izq"><img alt=""><div class="marcas"></div><div class="capa-texto"></div><div class="escaner" hidden></div></div>
+      <div class="slot der"><img alt=""><div class="marcas"></div><div class="capa-texto"></div><div class="escaner" hidden></div></div>
+      <div id="hoja"><div class="cara frente"><img alt=""><i class="sombra"></i></div><div class="cara dorso"><img alt=""><i class="sombra"></i></div></div>
+      <div id="menu-marca" hidden></div>
+      <div id="cuadro" hidden><span class="tirador" aria-label="Cambiar el tamaño de la lupa"></span></div>
+    </div>
+    <div id="cargando">Abriendo…</div>
+    <article id="papel" hidden></article>
+    <div id="aviso" hidden></div>
+    <div id="progreso-ocr" hidden><span></span><button class="boton fantasma" id="cancelar-ocr">Detener</button></div>
+    <div id="aviso-comparar" hidden>Viendo el subrayado de referencia. Tus subrayados van encima, en amarillo.</div>
+  </div>
+
+  <div id="traduccion" hidden>
+    <div class="trad-cabeza"><strong>Traducción</strong><span id="trad-estado"></span><button id="cerrar-trad" class="boton fantasma" aria-label="Cerrar">✕</button></div>
+    <p id="trad-texto"></p>
+    <details><summary>Texto original</summary><p id="trad-original"></p></details>
+  </div>
+
+  <footer class="barra-pie">
+    <span id="l-pagina"></span>
+    <input id="l-rango" type="range" min="1" max="1" value="1" aria-label="Ir a la página">
+    <span id="l-tiempo" title="Minutos de lectura en este documento"></span>
+  </footer>
+
+  <aside id="panel" hidden>
+    <nav class="pestanas">
+      <button data-p="examen" class="activa">En tu examen</button>
+      <button data-p="ficha">Ficha</button>
+      <button data-p="apuntes">Subrayados y apuntes</button>
+      <button data-p="capturas">Capturas</button>
+      <button id="cerrar-panel" class="boton fantasma" aria-label="Cerrar">✕</button>
+    </nav>
+    <div class="contenido" data-p="examen"></div>
+    <div class="contenido" data-p="ficha" hidden>
+      <label>Estado
+        <select id="f-estado">
+          <option value="pendiente">Pendiente</option>
+          <option value="leyendo">Leyendo</option>
+          <option value="leido">Leído</option>
+        </select>
+      </label>
+      <label>¿Qué afirma el autor?<textarea id="f-afirma" rows="4" placeholder="Con tus palabras, en español"></textarea></label>
+      <label>¿Cómo lo sostiene? (método, evidencia)<textarea id="f-sostiene" rows="3"></textarea></label>
+      <label>¿Para qué lo uso en mi examen?<textarea id="f-uso" rows="3"></textarea></label>
+      <label>Lo que no entendí<textarea id="f-dudas" rows="3" placeholder="Para llevarlo a /leer"></textarea></label>
+    </div>
+    <div class="contenido" data-p="capturas" hidden><div id="lista-capturas"></div></div>
+    <div class="contenido" data-p="apuntes" hidden>
+      <form id="form-apunte">
+        <textarea id="a-texto" rows="3" placeholder="Una nota sobre esta página…"></textarea>
+        <button class="boton primario" type="submit">Guardar nota en <span id="a-pag"></span></button>
+      </form>
+      <ol id="lista-apuntes"></ol>
+    </div>
+  </aside>
+
+  <div id="lupa" hidden><button class="boton secundario" id="cerrar-lupa">✕ Cerrar</button>
+    <div class="hoja-ampliada"><img alt=""><div class="marcas"></div><div class="capa-texto"></div></div>
+  </div>
+
+  <div id="editor-ocr" hidden>
+    <header class="editor-cabeza">
+      <button class="boton fantasma" id="eo-ant" aria-label="Página anterior">‹</button>
+      <strong id="eo-titulo"></strong>
+      <button class="boton fantasma" id="eo-sig" aria-label="Página siguiente">›</button>
+      <span id="eo-estado" class="estado"></span>
+      <button class="boton secundario" id="eo-cerrar">Cerrar</button>
+      <button class="boton primario" id="eo-guardar">Guardar correcciones</button>
+    </header>
+    <div class="editor-cuerpo">
+      <div class="editor-pagina"><div class="hoja-ocr"><img alt=""><b id="eo-foco" hidden></b></div></div>
+      <ol class="editor-lineas" id="eo-lineas"></ol>
+    </div>
+  </div>
+</section>
+
+<script src="config.js"></script>
+<script src="estatico.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
